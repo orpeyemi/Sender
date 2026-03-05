@@ -27,6 +27,7 @@ interface SMTPConfig {
   user: string;
   pass: string;
   fromName: string;
+  secure: boolean;
 }
 
 interface EmailData {
@@ -41,7 +42,8 @@ export default function App() {
     port: '587',
     user: '',
     pass: '',
-    fromName: 'Pro Sender'
+    fromName: 'Pro Sender',
+    secure: false
   });
 
   const [emailData, setEmailData] = useState<EmailData>({
@@ -242,6 +244,23 @@ export default function App() {
                         value={smtpConfig.fromName}
                         onChange={e => setSmtpConfig({...smtpConfig, fromName: e.target.value})}
                       />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            className="sr-only peer"
+                            checked={smtpConfig.secure}
+                            onChange={e => setSmtpConfig({...smtpConfig, secure: e.target.checked})}
+                          />
+                          <div className="w-10 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">
+                          Secure Connection (SSL/TLS) - Required for Port 465
+                        </span>
+                      </label>
+                      <p className="text-[10px] text-gray-400 mt-1">Leave unchecked for Port 587 (STARTTLS) or Port 25.</p>
                     </div>
                   </div>
 
@@ -468,13 +487,16 @@ export default function App() {
               <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Quick Presets</h3>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { name: 'Gmail', host: 'smtp.gmail.com', port: '587' },
-                  { name: 'Outlook', host: 'smtp.office365.com', port: '587' },
-                  { name: 'SendGrid', host: 'smtp.sendgrid.net', port: '587' }
+                  { name: 'Gmail', host: 'smtp.gmail.com', port: '587', secure: false },
+                  { name: 'Outlook', host: 'smtp.office365.com', port: '587', secure: false },
+                  { name: 'SendGrid', host: 'smtp.sendgrid.net', port: '587', secure: false },
+                  { name: 'Zoho', host: 'smtp.zoho.com', port: '465', secure: true },
+                  { name: 'Private Email', host: 'mail.privateemail.com', port: '465', secure: true },
+                  { name: 'cPanel/Webmail', host: 'mail.yourdomain.com', port: '465', secure: true }
                 ].map(preset => (
                   <button 
                     key={preset.name}
-                    onClick={() => setSmtpConfig({...smtpConfig, host: preset.host, port: preset.port})}
+                    onClick={() => setSmtpConfig({...smtpConfig, host: preset.host, port: preset.port, secure: preset.secure})}
                     className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium hover:border-blue-500 hover:text-blue-600 transition-all"
                   >
                     {preset.name}

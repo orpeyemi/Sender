@@ -29,7 +29,7 @@ async function startServer() {
       const transporter = nodemailer.createTransport({
         host: smtpConfig.host,
         port: parseInt(smtpConfig.port),
-        secure: smtpConfig.port === "465",
+        secure: smtpConfig.secure, // Use the explicit toggle from the UI
         auth: {
           user: smtpConfig.user,
           pass: smtpConfig.pass,
