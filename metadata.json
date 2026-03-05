@@ -1,0 +1,5 @@
+{
+  "name": "Pro Email Sender",
+  "description": "A professional SMTP-based email sender with custom configuration for high deliverability.",
+  "requestFramePermissions": []
+}
