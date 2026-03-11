@@ -17,7 +17,11 @@ import {
   Loader2,
   ChevronRight,
   Eye,
-  EyeOff
+  EyeOff,
+  Link as LinkIcon,
+  Type,
+  Bold,
+  Italic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -57,6 +61,8 @@ export default function App() {
   const [summary, setSummary] = useState<{ success: number, failed: number, errors: string[] } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [activeTab, setActiveTab] = useState<'config' | 'compose'>('config');
+  const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [linkData, setLinkData] = useState({ text: '', url: '' });
 
   const SPAM_KEYWORDS = [
     'free', 'win', 'winner', 'cash', 'prize', 'urgent', 'guaranteed', 
@@ -122,6 +128,21 @@ export default function App() {
       setStatus('error');
       setErrorMessage('Network error. Please check your connection.');
     }
+  };
+
+  const insertLink = () => {
+    if (!linkData.text || !linkData.url) return;
+    const formattedUrl = linkData.url.startsWith('http') ? linkData.url : `https://${linkData.url}`;
+    const linkHtml = `<a href="${formattedUrl}" style="color: #2563eb; text-decoration: underline;">${linkData.text}</a>`;
+    setEmailData({ ...emailData, text: emailData.text + ' ' + linkHtml });
+    setLinkData({ text: '', url: '' });
+    setShowLinkDialog(false);
+  };
+
+  const insertFormat = (tag: string) => {
+    const openTag = `<${tag}>`;
+    const closeTag = `</${tag}>`;
+    setEmailData({ ...emailData, text: emailData.text + openTag + ' ' + closeTag });
   };
 
   return (
@@ -314,9 +335,79 @@ export default function App() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
-                        Message Body
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-2">
+                          Message Body
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            type="button"
+                            onClick={() => insertFormat('b')}
+                            className="p-1.5 hover:bg-gray-100 rounded text-gray-500 transition-colors"
+                            title="Bold"
+                          >
+                            <Bold className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => insertFormat('i')}
+                            className="p-1.5 hover:bg-gray-100 rounded text-gray-500 transition-colors"
+                            title="Italic"
+                          >
+                            <Italic className="w-3.5 h-3.5" />
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => setShowLinkDialog(!showLinkDialog)}
+                            className={`p-1.5 hover:bg-gray-100 rounded transition-colors ${showLinkDialog ? 'bg-blue-50 text-blue-600' : 'text-gray-500'}`}
+                            title="Insert Link"
+                          >
+                            <LinkIcon className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <AnimatePresence>
+                        {showLinkDialog && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-3 mb-3 flex flex-col sm:flex-row gap-3 items-end">
+                              <div className="flex-1 space-y-1 w-full">
+                                <label className="text-[10px] font-bold text-blue-600 uppercase">Display Text</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="Click here"
+                                  className="w-full px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  value={linkData.text}
+                                  onChange={e => setLinkData({...linkData, text: e.target.value})}
+                                />
+                              </div>
+                              <div className="flex-1 space-y-1 w-full">
+                                <label className="text-[10px] font-bold text-blue-600 uppercase">URL</label>
+                                <input 
+                                  type="text" 
+                                  placeholder="example.com"
+                                  className="w-full px-3 py-1.5 text-sm bg-white border border-blue-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  value={linkData.url}
+                                  onChange={e => setLinkData({...linkData, url: e.target.value})}
+                                />
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={insertLink}
+                                className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <textarea 
                         required
                         rows={8}
@@ -387,7 +478,7 @@ export default function App() {
                       <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
                     </div>
                     <p className="text-blue-600 font-medium">Processing Bulk Send...</p>
-                    <p className="text-gray-400 text-xs mt-1">Sending emails sequentially for better deliverability.</p>
+                    <p className="text-gray-400 text-xs mt-1">Sending emails with a 12-15s delay between each to prevent spam flagging.</p>
                   </motion.div>
                 )}
 
@@ -477,7 +568,7 @@ export default function App() {
                   <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-[10px] font-bold">03</span>
                   </div>
-                  <p className="text-sm text-gray-300">Avoid spammy keywords in the subject line to bypass filters.</p>
+                  <p className="text-sm text-gray-300">Automatic <span className="text-white font-medium">12-15s delay</span> between sends helps bypass spam filters.</p>
                 </li>
               </ul>
             </div>

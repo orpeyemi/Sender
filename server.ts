@@ -45,8 +45,11 @@ async function startServer() {
         errors: [] as string[]
       };
 
+      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
       // Send emails sequentially to avoid overwhelming the SMTP server and improve deliverability
-      for (const recipient of recipients) {
+      for (let i = 0; i < recipients.length; i++) {
+        const recipient = recipients[i];
         try {
           await transporter.sendMail({
             from: `"${smtpConfig.fromName || 'Email Sender'}" <${smtpConfig.user}>`,
@@ -59,6 +62,12 @@ async function startServer() {
         } catch (err: any) {
           results.failed++;
           results.errors.push(`${recipient}: ${err.message}`);
+        }
+
+        // Add 12 to 15 seconds delay for every mail sent (except the last one)
+        if (i < recipients.length - 1) {
+          const waitTime = Math.floor(Math.random() * (15000 - 12000 + 1)) + 12000;
+          await delay(waitTime);
         }
       }
 
